@@ -1,0 +1,39 @@
+---
+- name: Update and upgrade all packages
+  hosts: all
+  become: true
+  gather_facts: true
+  handlers:
+    - name: Add host to reboot list
+      ansible.builtin.set_fact:
+        hosts_needing_reboot: "{{ hosts_needing_reboot | default([]) + [basic_server_setup_inventory_hostname] }}"
+      listen: "reboot_needed"
+
+
+    - name: Reboot host auto reboot is enabled for the host
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible due to package upgrades"
+      when: basic_server_setup_inventory_hostname in hosts_needing_reboot and auto_reboot | default(false) | bool
+      listen: "execute_reboot"
+
+  tasks:
+
+    - name: Initialize an empty list for hosts needing reboot
+      ansible.builtin.set_fact:
+        hosts_needing_reboot: []
+
+    - name: Block name
+      when: ansible_facts['os_family'] == 'Debian'
+      block:
+        - name: Update packages with apt
+          ansible.builtin.apt:
+            update_cache: true
+            upgrade: full
+            autoclean: true
+            autoremove: true
+          register: apt_upgrade
+
+        - name: Check for the presence of /var/run/reboot-required
+          ansible.builtin.stat:
+            path: /var/run/reboot-required
+          register: reboot_needed
