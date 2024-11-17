@@ -3,24 +3,22 @@
   hosts: all
   become: true
   gather_facts: true
+  vars:
+    hosts_needing_reboot: []
   handlers:
     - name: Add host to reboot list
       ansible.builtin.set_fact:
-        hosts_needing_reboot: "{{ hosts_needing_reboot | default([]) + [basic_server_setup_inventory_hostname] }}"
+        hosts_needing_reboot: "{{ hosts_needing_reboot | default([]) + [inventory_hostname] }}"
       listen: "reboot_needed"
 
 
     - name: Reboot host auto reboot is enabled for the host
       ansible.builtin.reboot:
         msg: "Reboot initiated by Ansible due to package upgrades"
-      when: basic_server_setup_inventory_hostname in hosts_needing_reboot and auto_reboot | default(false) | bool
+      when: inventory_hostnamein hosts_needing_reboot and auto_reboot | default(false) | bool
       listen: "execute_reboot"
 
   tasks:
-
-    - name: Initialize an empty list for hosts needing reboot
-      ansible.builtin.set_fact:
-        hosts_needing_reboot: []
 
     - name: Block name
       when: ansible_facts['os_family'] == 'Debian'
