@@ -1,0 +1,15 @@
+---
+- name: Pull new docker images and restart containers
+  hosts: docker
+  become: true
+  tasks:
+
+    - name: Pull docker images
+      community.docker.docker_compose_v2_pull:
+        project_src: "{{ docker_compose_directories }}"
+
+    - name: Restart docker images if auto restart is true
+      community.docker.docker_compose_v2:
+        prject_src: "{{ docker_compose_directories }}"
+        state: restarted
+      when: docker_compose_auto_restart | default(false)
