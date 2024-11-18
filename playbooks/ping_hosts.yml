@@ -3,25 +3,27 @@
   hosts: localhost
   tasks:
 
-  - name: Ping hosts 
-    ansible.builtin.ping:
+    - name: Ping hosts
+      ansible.builtin.ping:
 
-  - name: Ping 1.1.1.1 from hosts
-    ansible.builtin.command:
-      cmd: ping -c 4 1.1.1.1
-    register: ping_result
+    - name: Ping 1.1.1.1 from hosts
+      ansible.builtin.command:
+        cmd: ping -c 4 1.1.1.1
+      register: ping_result
+      changed_when: my_output.rc != 0
 
-  - name: Show results for the ping
-    ansible.builtin.debug:
-      var: ping_result.stdout_lines
-    when: ping_result is defined
+    - name: Show results for the ping
+      ansible.builtin.debug:
+        var: ping_result.stdout_lines
+      when: ping_result is defined
 
-  - name: Check if DNS is working
-    ansible.builtin.command:
-      cmd: dig ipconfig.net
-    register: dig_result
+    - name: Check if DNS is working
+      ansible.builtin.command:
+        cmd: dig ipconfig.net
+      register: dig_result
+      changed_when: my_output.rc != 0
 
-  - name: Show DNS results
-    ansible.builtin.debug:
-      var: dig_result
-    when: dig_result is defined
+    - name: Show DNS results
+      ansible.builtin.debug:
+        var: dig_result
+      when: dig_result is defined
